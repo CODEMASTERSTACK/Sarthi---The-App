@@ -19,17 +19,17 @@ Compass is a Flutter-based mobile application that provides users with a digital
 - 🗺️ **Interactive Map**  
   Visualizes your position on a map with support for zoom and pan.
 
-- 🌅 **Sunrise & Sunset Calculation**  
-  Calculates and displays daily sunrise and sunset times for your location.
-
-- 🔦 **Torch Control**  
-  Allows you to toggle your device's flashlight.
+- 🌅 **Waypoint and Waypoint Map route**  
+  User can add waypoint and copy it or show path then it will show the path to your waypooint from your current location.
+  
+- 🔦 **Emergency SOS Torch Signal**  
+  User can Start SOS torch. And it will send the signal SOS in torch blink in code.
 
 - 🔒 **Permission Handling**  
   Manages location and sensor permissions seamlessly.
 
 - 💾 **Shared Preferences**  
-  Stores user settings and preferences locally.
+  Stores user settings and preferences in their device.
 
 ---
 
@@ -55,7 +55,7 @@ Compass is a Flutter-based mobile application that provides users with a digital
 
 1. **Clone the Repository**
     ```bash
-    git clone <your-repo-url>
+    git clone <https://github.com/CODEMASTERSTACK/Sarthi---The-App.git>
     cd compass
     ```
 
@@ -152,4 +152,3 @@ For issues or feature requests, open an issue on GitHub.
 
 ---
 
-_Made with ❤️ using Flutter_
