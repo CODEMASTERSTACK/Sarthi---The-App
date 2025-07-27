@@ -71,6 +71,13 @@ class _CompassPageState extends State<CompassPage> {
     await _saveWaypoints();
   }
 
+  void _deleteWaypoint(Map<String, dynamic> wp) async {
+    setState(() {
+      _waypoints.remove(wp);
+    });
+    await _saveWaypoints();
+  }
+
   void _showRouteDialog(Map<String, dynamic> wp) {
     showDialog(
       context: context,
@@ -89,6 +96,7 @@ class _CompassPageState extends State<CompassPage> {
         waypoints: _waypoints,
         onAddWaypoint: _addWaypoint,
         onShowRouteToWaypoint: _showRouteDialog,
+        onDeleteWaypoint: _deleteWaypoint,
       ),
       const FootprintPage(),
       const ToolsPage(),

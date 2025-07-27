@@ -4,6 +4,7 @@ import 'package:torch_controller/torch_controller.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'dart:ui';
 import 'package:flutter/services.dart';
+import 'inclinometer_page.dart';
 
 class ToolsPage extends StatefulWidget {
   const ToolsPage({Key? key}) : super(key: key);
@@ -114,6 +115,12 @@ class _ToolsPageState extends State<ToolsPage> {
     );
   }
 
+  void _openInclinometer() {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (context) => const InclinometerPage()),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final accent = Colors.deepPurpleAccent;
@@ -136,49 +143,95 @@ class _ToolsPageState extends State<ToolsPage> {
         ),
       ),
       body: Center(
-        child: glassCard(
-          padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.flashlight_on, color: accent, size: 48),
-              const SizedBox(height: 12),
-              const Text(
-                'SOS Flashlight',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 22,
-                  letterSpacing: 0.5,
-                ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            glassCard(
+              padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.flashlight_on, color: accent, size: 48),
+                  const SizedBox(height: 12),
+                  const Text(
+                    'SOS Flashlight',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 22,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    _sosActive
+                        ? 'Flashlight is sending SOS signal...'
+                        : 'Tap the button below to send an SOS signal using your flashlight.',
+                    style: const TextStyle(color: Colors.white70, fontSize: 15),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 24),
+                  ElevatedButton.icon(
+                    icon: Icon(_sosActive ? Icons.stop : Icons.sos, color: Colors.white, size: 28),
+                    label: Text(_sosActive ? 'Stop SOS' : 'Start SOS', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: accent,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 32),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(32)),
+                      elevation: 6,
+                      shadowColor: accent.withOpacity(0.18),
+                      textStyle: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    onPressed: _sosActive ? _stopSOS : _startSOS,
+                  ),
+                ],
               ),
-              const SizedBox(height: 8),
-              Text(
-                _sosActive
-                    ? 'Flashlight is sending SOS signal...'
-                    : 'Tap the button below to send an SOS signal using your flashlight.',
-                style: const TextStyle(color: Colors.white70, fontSize: 15),
-                textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 32),
+            glassCard(
+              padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.device_hub, color: Colors.deepPurpleAccent, size: 48),
+                  const SizedBox(height: 12),
+                  const Text(
+                    'Inclination/Inclinometer',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 22,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Measure slope or angle. Useful for hikers and engineers.',
+                    style: TextStyle(color: Colors.white70, fontSize: 15),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 24),
+                  ElevatedButton.icon(
+                    icon: const Icon(Icons.straighten, color: Colors.white, size: 28),
+                    label: const Text('Open Inclinometer', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.deepPurpleAccent,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 32),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(32)),
+                      elevation: 6,
+                      shadowColor: Colors.deepPurpleAccent.withOpacity(0.18),
+                      textStyle: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    onPressed: _openInclinometer,
+                  ),
+                ],
               ),
-              const SizedBox(height: 24),
-              ElevatedButton.icon(
-                icon: Icon(_sosActive ? Icons.stop : Icons.sos, color: Colors.white, size: 28),
-                label: Text(_sosActive ? 'Stop SOS' : 'Start SOS', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: accent,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 32),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(32)),
-                  elevation: 6,
-                  shadowColor: accent.withOpacity(0.18),
-                  textStyle: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-                onPressed: _sosActive ? _stopSOS : _startSOS,
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
-} 
+}

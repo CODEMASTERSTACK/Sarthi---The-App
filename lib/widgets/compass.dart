@@ -15,18 +15,20 @@ class Compass extends StatefulWidget {
     required this.waypoints,
     this.onAddWaypoint,
     this.onShowRouteToWaypoint,
+    this.onDeleteWaypoint,
   });
 
   final void Function(Position position) onLocationChanged;
   final List<Map<String, dynamic>> waypoints;
   final void Function(Map<String, dynamic> waypoint)? onAddWaypoint;
   final void Function(Map<String, dynamic> waypoint)? onShowRouteToWaypoint;
+  final void Function(Map<String, dynamic> waypoint)? onDeleteWaypoint;
 
   @override
   State<Compass> createState() => _CompassState();
 }
 
-class _CompassState extends State<Compass> {
+class _CompassState extends State<Compass> with WidgetsBindingObserver {
   double? _heading;
   double _prevHeading = 0;
   double _displayHeading = 0;
@@ -39,6 +41,7 @@ class _CompassState extends State<Compass> {
   Timer? _timer;
   StreamSubscription<Position>? _positionStream;
   double? _speed;
+  bool _isUncalibrated = false;
 
   // Remove the local _waypoints list
   // List<Map<String, dynamic>> _waypoints = [];
@@ -46,6 +49,7 @@ class _CompassState extends State<Compass> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _checkPermissions();
     _updateTime();
     _timer = Timer.periodic(const Duration(seconds: 1), (_) => _updateTime());
@@ -55,7 +59,7 @@ class _CompassState extends State<Compass> {
     // Listen to location changes
     _positionStream = Geolocator.getPositionStream(
       locationSettings: const LocationSettings(
-        accuracy: LocationAccuracy.high,
+        accuracy: LocationAccuracy.medium, // Lower accuracy to save battery
         distanceFilter: 10, // meters before update
       ),
     ).listen((position) {
@@ -70,6 +74,25 @@ class _CompassState extends State<Compass> {
 
     // Get initial location immediately
     _getInitialLocation();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _timer?.cancel();
+    _positionStream?.cancel();
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive) {
+      _positionStream?.pause();
+    } else if (state == AppLifecycleState.resumed) {
+      _positionStream?.resume();
+      _getInitialLocation(); // Refresh location on resume
+    }
   }
 
   void _updateTime() {
@@ -108,6 +131,8 @@ class _CompassState extends State<Compass> {
           _heading = normalized;
           _hasSensor = true;
           _magneticStrength = magneticStrength;
+          _isUncalibrated = (_magneticStrength ?? 100) <
+              30; // Show warning if accuracy is low
         });
       });
     }
@@ -373,6 +398,41 @@ class _CompassState extends State<Compass> {
       );
     }
 
+    Widget _buildCalibrationWarning() {
+      return glassCard(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            const Icon(Icons.explore_off, color: Colors.orangeAccent, size: 32),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Low Compass Accuracy',
+                    style: TextStyle(
+                      color: Colors.orangeAccent,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Wave your device in a figure-8 pattern to calibrate the compass.',
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.8),
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
     return Scaffold(
       extendBodyBehindAppBar: true,
       backgroundColor: Colors.black,
@@ -409,6 +469,8 @@ class _CompassState extends State<Compass> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 const SizedBox(height: 12),
+                // Calibration warning
+                if (_isUncalibrated) _buildCalibrationWarning(),
                 // Area and Time
                 if (_areaName != null || _localTime != null)
                   glassCard(
@@ -710,7 +772,7 @@ class _CompassState extends State<Compass> {
                                   const SizedBox(width: 6),
                                   Flexible(
                                     child: Text(
-                                      _speed! > 0.5
+                                      (_speed != null && _speed! > 0.5)
                                           ? 'Speed: ${(_speed! * 3.6).toStringAsFixed(2)} km/h'
                                           : 'Speed: 0 km/h',
                                       style: const TextStyle(fontSize: 14, color: Colors.lightGreenAccent, fontWeight: FontWeight.w600),
@@ -723,7 +785,7 @@ class _CompassState extends State<Compass> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 12),
                 // Waypoints list (if any)
                 if (widget.waypoints.isNotEmpty)
                   glassCard(
@@ -834,6 +896,30 @@ class _CompassState extends State<Compass> {
                                                 ),
                                                 onTap: () => Navigator.pop(ctx, 'show_path'),
                                               ),
+                                              // Delete option
+                                              ListTile(
+                                                leading: Container(
+                                                  padding: const EdgeInsets.all(8),
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.redAccent.withOpacity(0.18),
+                                                    borderRadius: BorderRadius.circular(12),
+                                                  ),
+                                                  child: const Icon(Icons.delete, color: Colors.redAccent),
+                                                ),
+                                                title: const Text(
+                                                  'Delete Waypoint',
+                                                  style: TextStyle(
+                                                    color: Colors.redAccent,
+                                                    fontWeight: FontWeight.w600,
+                                                    fontSize: 16,
+                                                  ),
+                                                ),
+                                                subtitle: const Text(
+                                                  'Remove this waypoint from the list',
+                                                  style: TextStyle(color: Colors.white70),
+                                                ),
+                                                onTap: () => Navigator.pop(ctx, 'delete'),
+                                              ),
                                               const SizedBox(height: 20),
                                             ],
                                           ),
@@ -855,6 +941,8 @@ class _CompassState extends State<Compass> {
                                       );
                                     } else if (action == 'show_path' && widget.onShowRouteToWaypoint != null) {
                                       widget.onShowRouteToWaypoint!(wp);
+                                    } else if (action == 'delete' && widget.onDeleteWaypoint != null) {
+                                      widget.onDeleteWaypoint!(wp);
                                     }
                                   },
                                   child: Padding(
@@ -905,13 +993,6 @@ class _CompassState extends State<Compass> {
       ),
     );
   
-  }
-
-  @override
-  void dispose() {
-    _timer?.cancel();
-    _positionStream?.cancel();
-    super.dispose();
   }
 }
 

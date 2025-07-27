@@ -42,6 +42,7 @@ dependencies:
   torch_controller: ^2.0.1
   http: ^1.4.0
   shared_preferences: ^2.2.2
+  motion_sensors: ^0.1.0
 
 dev_dependencies:
   flutter_test:

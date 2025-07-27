@@ -204,7 +204,7 @@ class FootprintPage extends StatefulWidget {
   State<FootprintPage> createState() => _FootprintPageState();
 }
 
-class _FootprintPageState extends State<FootprintPage> {
+class _FootprintPageState extends State<FootprintPage> with WidgetsBindingObserver {
   List<LatLng> _footprint = [];
   bool _tracking = false;
   Position? _currentPosition;
@@ -218,6 +218,26 @@ class _FootprintPageState extends State<FootprintPage> {
     super.initState();
     _mapController = MapController();
     _initLocation();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    _positionStream?.cancel();
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    if (!_tracking) return;
+
+    if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive) {
+      _positionStream?.pause();
+    } else if (state == AppLifecycleState.resumed) {
+      _positionStream?.resume();
+    }
   }
 
   Future<void> _initLocation() async {
@@ -334,12 +354,6 @@ class _FootprintPageState extends State<FootprintPage> {
       total += distance(points[i - 1], points[i]);
     }
     return total;
-  }
-
-  @override
-  void dispose() {
-    _positionStream?.cancel();
-    super.dispose();
   }
 
   Widget glassCard({required Widget child, EdgeInsets? padding, double? width, double? height, Color? color}) {
